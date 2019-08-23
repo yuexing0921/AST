@@ -21,10 +21,7 @@ async function getFunctionInfo(sourceFile: ts.SourceFile): Promise<Array<ApiInfo
 
     function traverseAST(node) {
         if (isKind(node, ts.SyntaxKind.FunctionDeclaration)) {
-            const parameters = <ts.FunctionDeclaration>node.parameters
-            // const p = parameters[0];
-
-
+            const parameters = node.parameters
             const callExpressionNode = getNode(node, ts.SyntaxKind.CallExpression).node;
             const responseNode = getNode(callExpressionNode, ts.SyntaxKind.TypeReference).node;
 
@@ -44,8 +41,9 @@ async function getFunctionInfo(sourceFile: ts.SourceFile): Promise<Array<ApiInfo
 
     return list;
 }
-
-
+interface Schemas {
+    [key: string]: Array<ApiInfo>
+}
 
 
 export async function getAPISchema(apiPath: string): Promise<Array<ApiInfo> | null> {
