@@ -11,7 +11,8 @@ export interface ApiInfo {
     jsDoc?: {
         tags?: ts.NodeArray<ts.JSDocTag>;
         comment?: string;
-    }
+    },
+    schema?: TJS.Definition
 }
 
 async function getFunctionInfo(sourceFile: ts.SourceFile): Promise<Array<ApiInfo> | null> {
@@ -44,13 +45,10 @@ async function getFunctionInfo(sourceFile: ts.SourceFile): Promise<Array<ApiInfo
     return list;
 }
 
-const schemaCache = {};
 
 
-export async function getAPISchema(apiPath: string): Promise<TJS.Definition | null> {
-    if (schemaCache[apiPath]) {
-        return schemaCache[apiPath];
-    }
+
+export async function getAPISchema(apiPath: string): Promise<Array<ApiInfo> | null> {
 
     const filePath = await getAPIFilePath(apiPath)
     if (!filePath) {
@@ -59,21 +57,25 @@ export async function getAPISchema(apiPath: string): Promise<TJS.Definition | nu
 
     const sourceFile = await getSourceFile(filePath);
 
-    const funs = await getFunctionInfo(sourceFile);
+    let funs = await getFunctionInfo(sourceFile);
 
     const errMsg = "Unable to get api schema.";
     if (funs && funs.length > 0) {
         const program = TJS.getProgramFromFiles([filePath]);
-        funs.forEach(info => {
+        return funs.map(info => {
             const schema = TJS.generateSchema(program, info.response, {
                 ignoreErrors: true,
                 required: true
             });
             if (!schema) throw new Error(errMsg);
-            schemaCache[info.url] = schema;
+
+            return {
+                ...info,
+                schema
+            }
+
         })
 
-        return schemaCache;
     } else {
         throw new Error(errMsg);
     }
