@@ -64,7 +64,7 @@ export async function getAPISchema(apiPath: string): Promise<TJS.Definition | nu
     const errMsg = "Unable to get api schema.";
     if (funs && funs.length > 0) {
         const program = TJS.getProgramFromFiles([filePath]);
-        funs.map(info => {
+        funs.forEach(info => {
             const schema = TJS.generateSchema(program, info.response, {
                 ignoreErrors: true,
                 required: true
